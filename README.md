@@ -1,302 +1,371 @@
-# AuthenticVision AI
-### Real vs. AI-Generated Image Detection with ConvNeXt-Tiny
+# AuthenticVision AI — Real vs AI-Generated Image Detector
 
-AuthenticVision AI is a machine-learning research and learning project that fine-tunes an ImageNet-pretrained **ConvNeXt-Tiny** image classifier to estimate whether an image is **real** or **AI-generated**. It includes a Google Colab training workflow, a local Streamlit interface, command-line inference, and evaluation utilities.
+An experimental deep-learning application that classifies images as **real** or **AI-generated** using a fine-tuned ConvNeXt-Tiny model. Built with PyTorch and Streamlit, AuthenticVision AI provides a simple interface for image prediction, command-line inference, and model evaluation.
 
-> **Important:** This is an experimental classifier, not forensic proof of an image's origin. Its predictions can be wrong—especially for images from unfamiliar generators, edited images, or images that differ from its training data.
-
----
-
-## Project at a Glance
-
-| | |
-|---|---|
-| Task | Binary image classification: real vs. AI-generated |
-| Model | ConvNeXt-Tiny (`torchvision`) |
-| Learning approach | Transfer learning / fine-tuning |
-| Dataset | [TheKernel01/Tiny-GenImage](https://huggingface.co/datasets/TheKernel01/Tiny-GenImage) |
-| Input size | 224 × 224 pixels (default training configuration) |
-| Interface | Streamlit |
-| Training environment | Google Colab GPU (recommended) |
-| Local inference | Windows; CPU or CUDA when available |
-| Project status | Research / learning project |
-
-## Screenshots
-
-
-### Application
-
-![AuthenticVision AI application interface](docs/images/app-interface.png)
-
-### Prediction — Real Image
-
-![AuthenticVision AI real-image prediction](docs/images/real-image.png)
-
-### Prediction — AI-Generated Image
-
-![AuthenticVision AI AI-generated-image prediction](docs/images/ai-image.png)
-
-### Predictions - multiple images
-
-![AuthenticVision AI evaluation results](docs/images/multi-images.png)
-
+<p align="center">
+  <strong>AI Image Classification · Deep Learning · Computer Vision · PyTorch · Streamlit</strong>
+</p>
 
 ---
+
+## Overview
+
+AI-generated images are becoming increasingly realistic, making it difficult to distinguish synthetic images from authentic photographs through visual inspection alone.
+
+**AuthenticVision AI** explores this problem using transfer learning and image classification. It uses a pretrained ConvNeXt-Tiny architecture, fine-tuned on a real-versus-AI image dataset, to estimate whether an input image belongs to either category.
+
+The project includes:
+
+- A Streamlit interface for uploading and analyzing images.
+- A trained ConvNeXt-Tiny image classification model.
+- Command-line image prediction.
+- Dataset preparation and training utilities.
+- Evaluation tools for independent labelled datasets.
+- A Google Colab notebook for cloud-based GPU training.
+- Tests for selected metrics and data-splitting functionality.
+
+> **Important:** This is an experimental image classifier, not a certified forensic detection system. Its predictions are estimates and should not be treated as proof that an image is authentic or AI-generated.
 
 ## Features
 
-- Fine-tunes a pretrained ConvNeXt-Tiny model for two classes: `real` and `ai`.
-- Uses generator-aware data splitting for deployment training and optional leave-one-generator-out research experiments.
-- Calibrates a decision threshold from validation real-image scores to target a selected empirical false-positive rate.
-- Provides a local Streamlit UI for single or multiple image uploads.
-- Displays the AI score, verdict, and inference time.
-- Exports batch prediction results to CSV.
-- Includes command-line prediction and external-folder evaluation tools.
-- Saves training checkpoints, metrics, prediction reports, and evaluation plots.
-- Includes unit tests for metric calculations and data-split behavior.
+| Feature | Description |
+|---|---|
+| Image classification | Predicts real or AI-generated images |
+| Deep learning | Uses a fine-tuned ConvNeXt-Tiny architecture |
+| Transfer learning | Starts from pretrained ImageNet weights |
+| Interactive interface | Streamlit-based image upload and prediction |
+| Confidence scores | Displays model prediction scores |
+| Threshold configuration | Supports configurable classification thresholds |
+| CLI prediction | Analyze images through the command line |
+| Model evaluation | Evaluate predictions on labelled image folders |
+| GPU training | Supports cloud GPU training through Google Colab |
+| CPU inference | Supports local inference on compatible Windows systems |
 
-## How It Works
+## Technology Stack
 
-1. Load the Tiny-GenImage dataset from Hugging Face.
-2. Prepare real and AI-generated image subsets.
-3. Fine-tune ConvNeXt-Tiny, replacing its final classifier layer with a two-class output.
-4. Select the best checkpoint using validation ROC-AUC.
-5. Calibrate the decision threshold using validation data—not the final test split.
-6. Evaluate on a separate image-disjoint test subset.
-7. Use the trained checkpoint locally through Streamlit or the command line.
+- **Programming language:** Python
+- **Deep learning:** PyTorch
+- **Computer vision:** Torchvision, PIL
+- **Model architecture:** ConvNeXt-Tiny
+- **Web interface:** Streamlit
+- **Data processing:** NumPy, Pandas
+- **Dataset access:** Hugging Face Datasets
+- **Development and experimentation:** Google Colab, VS Code / PyCharm
+- **Testing:** Pytest
 
-### Model and preprocessing
+## Model Architecture
 
-The project uses `torchvision`'s ImageNet-pretrained ConvNeXt-Tiny weights as its starting point. The final classification layer is replaced with a two-output linear layer.
+AuthenticVision AI uses **ConvNeXt-Tiny**, a modern convolutional neural network architecture.
 
-Training preprocessing includes random resized cropping, horizontal flipping, light color augmentation, and optional JPEG compression simulation. Evaluation preprocessing uses resize, center crop, and ImageNet normalization.
+The model starts with pretrained ImageNet weights and is adapted through transfer learning for binary image classification.
 
-The model's output is converted to class probabilities with softmax. Class index `0` represents **real** and class index `1` represents **AI-generated**.
+**Classification labels:**
 
-## Dataset and Evaluation Protocol
+| Class index | Label |
+|---|---|
+| 0 | Real |
+| 1 | AI-generated |
 
-The default dataset is [TheKernel01/Tiny-GenImage](https://huggingface.co/datasets/TheKernel01/Tiny-GenImage), a curated subset in the GenImage family. The dataset card reports 35,000 rows (28,000 training and 7,000 validation) and an approximate total size of 8.36 GB. Dataset contents and availability may change; consult the dataset card before use.
+**Default image input size:** 224 × 224 pixels.
 
-### Deployment training (default)
+The model produces class scores that are used by the prediction pipeline to determine the final classification. The project also includes threshold-related logic to support configurable decision-making.
 
-The default configuration uses `--holdout-generator all`, which includes generator families present in the dataset's training split. Validation and test samples are separate images drawn from the official validation split.
+## Dataset
 
-**This is image-disjoint evaluation, not an unseen-generator test.** The generator families in the test set may also be represented during training.
+The project uses the following dataset:
 
-### Leave-one-generator-out research mode
+**Dataset:** [TheKernel01/Tiny-GenImage](https://huggingface.co/datasets/TheKernel01/Tiny-GenImage)
 
-Training can exclude one generator family and use that family in a research test. This is useful for exploring cross-generator generalization. A checkpoint trained in this mode should not be treated as the recommended general-purpose deployment model when the excluded generator is relevant to expected user images.
+Tiny-GenImage is used as a dataset source for real and AI-generated image classification experiments.
 
-### Performance reporting
+### Dataset and splitting considerations
 
-Do not interpret a few sample predictions as evidence of model accuracy. For a meaningful report, evaluate on a labelled, independent dataset representative of the intended use and report metrics such as:
+The project includes generator-aware data-splitting functionality.
 
-- Accuracy
-- Precision and recall for the AI class
-- F1-score
-- ROC-AUC
-- False-positive rate on real images
-- False-negative rate on AI images
-- Test sample counts and the evaluation protocol
+Two different evaluation scenarios should be distinguished:
 
-**Project-specific benchmark results:** Add values from the final run's `metrics.json` here after checking the evaluation split and sample counts. This README intentionally does not claim an accuracy or ROC-AUC value that has not been verified.
+1. **Image-disjoint evaluation:** Training and test images are separated, but images from the same generator families may occur in both sets.
+2. **Unseen-generator evaluation:** A generator family is excluded from training and reserved for testing, allowing experiments on generalization to an unseen generator.
 
-| Metric | Final test result |
-|---|---:|
-| Test samples | Add from `metrics.json` |
-| Accuracy | Add from `metrics.json` |
-| AI precision | Add from `metrics.json` |
-| AI recall | Add from `metrics.json` |
-| AI F1-score | Add from `metrics.json` |
-| ROC-AUC | Add from `metrics.json` |
-| Real-image false-positive rate | Add from `metrics.json` |
+The training utility supports a `--holdout-generator` option for leave-one-generator-out experiments.
 
----
+The default `--holdout-generator all` setting is intended for the project's standard deployment-training workflow. It should not be interpreted as proof of generalization to unseen generator families.
 
-## Installation and Local Usage
+## Project Structure
 
-### Requirements
+```text
+AuthenticVision_AI/
+│
+├── app.py
+├── av_model.py
+├── train.py
+├── predict.py
+├── evaluate_folder.py
+├── hf_tiny_data.py
+├── metrics_utils.py
+│
+├── notebooks/
+│   └── AuthenticVision_Cloud_GPU_Training.ipynb
+│
+├── scripts/
+│   └── ...
+│
+├── tests/
+│   └── ...
+│
+├── reports/
+│   └── research_notes.md
+│
+├── docs/
+│   └── images/
+│       ├── app-interface.png
+│       ├── real-image-prediction.png
+│       ├── ai-image-prediction.png
+│       └── evaluation-results.png
+│
+├── requirements.txt
+├── requirements-colab.txt
+├── .gitignore
+├── LICENSE.txt
+└── README.md
+```
 
-- Windows 10/11, 64-bit
-- Python 3.11 or 3.12 recommended
-- Git
-- A trained `best_model.pt` checkpoint
-- Internet connection for installing dependencies
+**Note:** The trained model checkpoint is not included in the Git repository because of its file size. You must obtain or train a checkpoint before running predictions.
 
-Local CPU inference is supported. Training is resource-intensive; a cloud GPU such as an available Google Colab GPU is recommended.
+## Getting Started
 
 ### 1. Clone the repository
 
-```powershell
+```bash
 git clone https://github.com/AnasDev23/authenticvision-ai.git
+```
+
+Navigate to the project directory:
+
+```bash
 cd authenticvision-ai
 ```
 
-If you have not published the repository yet, replace the URL with your repository URL.
+### 2. Create a virtual environment
 
-### 2. Set up the local environment
-
-Run the included Windows setup script:
-
-```powershell
-.\scripts\setup_windows.bat
+```bash
+python -m venv .venv
 ```
 
-The script creates a virtual environment, installs CPU builds of PyTorch and torchvision, and installs the local UI dependencies.
+Activate it on Windows PowerShell:
 
-### 3. Add the trained checkpoint
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
 
-Place your trained checkpoint here:
+If PowerShell blocks activation, you can use Command Prompt:
+
+```cmd
+.venv\Scripts\activate.bat
+```
+
+### 3. Install dependencies
+
+```bash
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### 4. Prepare the model checkpoint
+
+The trained model checkpoint is excluded from this repository because it exceeds GitHub's standard file-size limit.
+
+Place your compatible checkpoint at:
 
 ```text
 outputs/best_model.pt
 ```
 
-The model checkpoint is not included in the source repository by default because model weights are large and may have separate distribution considerations. See [Model Checkpoint](#model-checkpoint).
+Create the `outputs` folder if it does not already exist.
 
-### 4. Launch the application
+**Important:** Use a checkpoint trained with this project's model architecture and compatible with its inference code.
 
-```powershell
-.\scripts\run_app_windows.bat
+## Running the Application
+
+Once the dependencies and compatible checkpoint are available, launch the Streamlit application:
+
+```bash
+streamlit run app.py
 ```
 
-Streamlit will start the local application. Open the local URL printed in the terminal, usually `http://localhost:8501`.
+Open the local URL displayed in your terminal.
 
-In the sidebar, load the checkpoint and upload one or more images. The interface displays an estimated AI score and a verdict, and lets you download prediction results as CSV.
-
----
+Upload an image through the interface to receive a classification prediction.
 
 ## Command-Line Prediction
 
-Run a prediction for one image:
+The project also includes a command-line prediction utility.
 
-```powershell
-python predict.py --checkpoint outputs/best_model.pt --image "D:\photos\sample.jpg"
+Example:
+
+```bash
+python predict.py --help
 ```
 
-Optional threshold override:
+Use the available arguments shown by the command to provide an image path and model checkpoint.
 
-```powershell
-python predict.py --checkpoint outputs/best_model.pt --image "D:\photos\sample.jpg" --threshold 0.5
+## Model Training
+
+The project includes a training pipeline based on the Tiny-GenImage dataset.
+
+For available training options:
+
+```bash
+python train.py --help
 ```
 
-Normally, leave the threshold unset to use the value stored in the checkpoint. A threshold changes the decision rule; it does **not** retrain or improve the model.
+The training script supports configuration options such as:
 
-## Evaluate an External Dataset
+- Dataset selection.
+- Output directory.
+- Number of epochs.
+- Batch size.
+- Image size.
+- Learning rates.
+- Sample limits.
+- Generator holdout configuration.
+- Target false-positive rate.
+- Random seed.
+- Resume training.
+- CPU training mode.
 
-Prepare a labelled folder with this layout:
+For GPU-based training, use the included Google Colab notebook:
+
+```text
+notebooks/AuthenticVision_Cloud_GPU_Training.ipynb
+```
+
+It provides a cloud-based training workflow without requiring a dedicated local GPU.
+
+## Model Evaluation
+
+AuthenticVision AI includes an evaluation utility for testing trained checkpoints against independent, labelled image datasets.
+
+Prepare an evaluation dataset using this folder structure:
 
 ```text
 evaluation_data/
+│
 ├── real/
-│   ├── real_001.jpg
+│   ├── image1.jpg
+│   ├── image2.jpg
 │   └── ...
+│
 └── ai/
-    ├── ai_001.jpg
+    ├── image1.jpg
+    ├── image2.jpg
     └── ...
 ```
 
-Then run:
+Run the evaluation utility:
 
-```powershell
-python evaluate_folder.py --checkpoint outputs/best_model.pt --data-dir evaluation_data --output external_evaluation
+```bash
+python evaluate_folder.py --help
 ```
 
-The script writes `metrics.json` and `predictions.csv` to the output directory. Use an independent labelled dataset for external evaluation; do not tune a threshold on the same test data used for final reporting.
+Example evaluation command:
 
-## Training in Google Colab
-
-The repository includes a notebook:
-
-`notebooks/AuthenticVision_Cloud_GPU_Training.ipynb`
-
-Recommended workflow:
-
-1. Upload the notebook to [Google Colab](https://colab.research.google.com/).
-2. Select an available GPU runtime.
-3. Run the notebook cells in order and upload the project ZIP when prompted.
-4. Keep `HOLDOUT_GENERATOR = 'all'` for the default deployment training mode.
-5. Review the generated `metrics.json`, training history, and plots.
-6. Download the results archive and copy the final `best_model.pt` into the local project's `outputs/` directory.
-
-The notebook's default settings include up to 8 epochs, batch size 16, image size 224, up to 2,000 AI training images per generator, a `1e-5` backbone learning rate, and a `1e-4` classifier-head learning rate. These are configuration defaults, not a guarantee of a particular score. Cloud GPU availability and limits can vary.
-
-For a research experiment that excludes a specific generator, set `HOLDOUT_GENERATOR` to a supported generator name and use a separate output directory. Review the notebook and training script before running a long experiment.
-
-## Tests
-
-Run the included unit tests from the repository root:
-
-```powershell
-python -m unittest discover -s tests -v
+```bash
+python evaluate_folder.py --checkpoint ".\outputs\best_model.pt" --data-dir ".\evaluation_data" --output ".\reports\external_evaluation" --batch-size 16
 ```
 
-These tests cover metric calculations and data-split behavior. They do not train the model or prove real-world detection performance.
+The evaluation utility supports:
 
-## Repository Structure
+- Real versus AI-generated image evaluation.
+- Configurable classification thresholds.
+- Batch processing.
+- Metrics generation.
+- Prediction report export.
 
-```text
-authenticvision-ai/
-├── app.py                         # Streamlit application
-├── av_model.py                    # ConvNeXt-Tiny, transforms, checkpoint loading
-├── train.py                       # Training and evaluation pipeline
-├── predict.py                     # Single-image CLI prediction
-├── evaluate_folder.py              # Evaluation on a labelled image folder
-├── diagnose_prediction.py          # Detailed prediction diagnostics
-├── hf_tiny_data.py                # Dataset loading and split construction
-├── metrics_utils.py                # Metrics and threshold calibration
-├── requirements.txt
-├── requirements-local.txt
-├── requirements-cloud.txt
-├── notebooks/
-│   └── AuthenticVision_Cloud_GPU_Training.ipynb
-├── scripts/
-│   ├── setup_windows.bat
-│   ├── run_app_windows.bat
-│   └── check_environment.py
-├── tests/
-├── reports/
-│   └── research_notes.md
-├── docs/
-│   └── images/                    # README screenshots
-└── outputs/                       # Local model files; excluded from Git by default
+**Evaluation status:** Independently verified external benchmark results have not yet been published in this repository. Model performance should be assessed using a separate, representative test dataset. Training or validation results should not be presented as independent test performance.
+
+## Screenshots
+
+The following screenshots can be added to showcase the application and its functionality.
+
+### Application Interface
+
+![AuthenticVision AI Application Interface](docs/images/app-interface.png)
+
+### Real Image Prediction
+
+![Real Image Prediction](docs/images/real-image-prediction.png)
+
+### AI-Generated Image Prediction
+
+![AI-Generated Image Prediction](docs/images/ai-image-prediction.png)
+
+### Evaluation Results
+
+![Evaluation Results](docs/images/evaluation-results.png)
+
+*If a screenshot is not available yet, add the corresponding image to `docs/images/` before publishing the README.*
+
+## Testing
+
+The project includes automated tests for selected functionality, including metrics calculations and data-splitting behavior.
+
+Run the test suite using:
+
+```bash
+pytest
 ```
-
 
 ## Limitations and Responsible Use
 
-- AI image generators evolve; performance on current or unseen generators is not guaranteed.
-- Resizing, compression, editing, screenshots, and post-processing can change predictions.
-- A model score is a probability-like estimate from this classifier, not a verified probability of provenance.
-- A false positive may incorrectly label a real photograph as AI-generated; a false negative may miss an AI-generated image.
-- Do not use this project as the sole basis for high-impact decisions, accusations, or authenticity claims.
-- Test independently on images and generators relevant to your intended use.
+AI-generated image detection is an evolving research area. No image classifier can guarantee perfect detection across all image sources and generation methods.
 
-## Dataset License and Project License
+Known limitations include:
 
-The project's code is distributed under the MIT License in `LICENSE.txt`.
+- New image generators may produce patterns not represented in the training data.
+- Image resizing, compression, editing, and post-processing may affect predictions.
+- Performance on unseen generator families may differ from performance on familiar generators.
+- A high confidence score does not establish that a prediction is correct.
+- Dataset composition and evaluation methodology can influence reported results.
 
-The Tiny-GenImage dataset card lists **CC-BY-NC-SA-4.0**. The code license does not change the dataset license or the terms of any source images, pretrained weights, or other third-party assets. Check the current dataset terms and applicable permissions before redistributing dataset-derived assets, model weights, or using them commercially.
+**Responsible use:**
 
-- Dataset: [TheKernel01/Tiny-GenImage](https://huggingface.co/datasets/TheKernel01/Tiny-GenImage)
-- Original GenImage benchmark: [GenImage-Dataset/GenImage](https://github.com/GenImage-Dataset/GenImage)
-- Pretrained model family: [Torchvision ConvNeXt-Tiny](https://pytorch.org/vision/stable/models/convnext.html)
+- Do not use predictions as definitive evidence of image authenticity.
+- Do not rely on the model for legal, financial, employment, or other high-impact decisions.
+- Verify important findings using independent evidence and appropriate expert review.
 
----
+## Future Improvements
 
-## Acknowledgements
+Potential future development includes:
 
-- The Tiny-GenImage dataset authors and contributors
-- The GenImage benchmark project
-- PyTorch and Torchvision
-- Hugging Face Datasets
-- Streamlit
+- Evaluation on more independent image datasets.
+- More extensive unseen-generator generalization experiments.
+- Testing against additional AI image-generation models.
+- Robustness testing under image compression and editing.
+- Improved model calibration and threshold analysis.
+- Additional visualization and explainability features.
+- Further optimization for faster inference.
+
+## License
+
+The project's source code is distributed under the MIT License. See [LICENSE.txt](LICENSE.txt) for details.
+
+**Dataset and pretrained-weight licensing:** The source-code license does not automatically apply to third-party datasets, source images, pretrained model weights, or other external resources. Review the applicable terms before redistribution or commercial use. The referenced Tiny-GenImage dataset identifies its licensing terms on its Hugging Face dataset page.
 
 ## Author
 
-**Anas Islam**  
-[GitHub](https://github.com/AnasDev23) · [LinkedIn](https://www.linkedin.com/in/anas-islam-it/)
+**Anas Islam**
+
+BS Information Technology | Data & Business Intelligence | AI & Machine Learning | Software Development
+
+- **GitHub:** [AnasDev23](https://github.com/AnasDev23)
+- **LinkedIn:** [Anas Islam](https://www.linkedin.com/in/anas-islam-it/)
+- **Email:** [anasislam.it@gmail.com](mailto:anasislam.it@gmail.com)
 
 ---
 
-*Built as a machine-learning learning and research project. Predictions are experimental and should be independently validated.*
+<p align="center">
+  Built as an AI and computer vision learning project.
+  <br>
+  <strong>AuthenticVision AI — Exploring Real vs AI-Generated Image Detection</strong>
+</p>

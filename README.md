@@ -282,11 +282,8 @@ The evaluation utility supports:
 - Metrics generation.
 - Prediction report export.
 
-**Evaluation status:** Independently verified external benchmark results have not yet been published in this repository. Model performance should be assessed using a separate, representative test dataset. Training or validation results should not be presented as independent test performance.
 
 ## Screenshots
-
-The following screenshots can be added to showcase the application and its functionality.
 
 ### Application Interface
 
@@ -300,11 +297,10 @@ The following screenshots can be added to showcase the application and its funct
 
 ![AI-Generated Image Prediction](docs/images/ai-image.png)
 
-### Prediction on set of images
+### Multiple-Images Predictions
 
-![Prediction on set of images](docs/images/multi-images.png)
+![Multiple-Images Predictions](docs/images/multi-images.png)
 
-*If a screenshot is not available yet, add the corresponding image to `docs/images/` before publishing the README.*
 
 ## Testing
 

@@ -1,0 +1,5 @@
+# Local Windows GUI and inference dependencies. Torch/torchvision are installed
+# separately as CPU builds by scripts/setup_windows.bat.
+Pillow>=10
+streamlit>=1.40
+pandas>=2.0

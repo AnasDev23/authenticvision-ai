@@ -1,0 +1,59 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# IDE
+.idea/
+
+# Dataset and cache
+.cache/
+datasets/
+data/
+*.zip
+
+# Model checkpoints
+outputs/
+checkpoints/
+*.pt
+*.pth
+*.onnx
+
+# Generated reports
+external_evaluation/
+
+# Python virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Pip cache
+.pip-cache/
+.cache/
+pip-cache/
+pip_cache/
+
+# Machine learning model weights
+outputs/
+checkpoints/
+*.pt
+*.pth
+*.onnx
+
+# Dataset files
+datasets/
+data/
+
+# IDE
+.idea/
+.vscode/
+
+# Temporary files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db

@@ -294,15 +294,15 @@ The following screenshots can be added to showcase the application and its funct
 
 ### Real Image Prediction
 
-![Real Image Prediction](docs/images/real-image-prediction.png)
+![Real Image Prediction](docs/images/real-image.png)
 
 ### AI-Generated Image Prediction
 
-![AI-Generated Image Prediction](docs/images/ai-image-prediction.png)
+![AI-Generated Image Prediction](docs/images/ai-image.png)
 
-### Evaluation Results
+### Prediction on set of images
 
-![Evaluation Results](docs/images/evaluation-results.png)
+![Prediction on set of images](docs/images/multi-images.png)
 
 *If a screenshot is not available yet, add the corresponding image to `docs/images/` before publishing the README.*
 
